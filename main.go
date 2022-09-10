@@ -125,9 +125,21 @@ func drawBullet(screen *ebiten.Image, bullet *Bullet) {
 	}
 	screen.DrawTriangles(vs, is, emptySubImage, op)
 }
+func shootBullet(player *Player) Bullet {
+	vec := toVector(maxSpeed*1.2, player.image.direction)
+	player.vector.x -= vec.x / 5
+	player.vector.y -= vec.y / 5
+	var speed = float32(math.Sqrt(math.Pow(float64(player.vector.x), 2) + math.Pow(float64(player.vector.y), 2)))
+	if speed > maxSpeed {
+		player.vector.x = player.vector.x * (maxSpeed / speed)
+		player.vector.y = player.vector.y * (maxSpeed / speed)
+	}
+	return Bullet{player.image.x, player.image.y, vec, 0}
+}
 func updateBullet(bullet *Bullet) {
 	bullet.x += bullet.vector.x
 	bullet.y += bullet.vector.y
+	bullet.time += 1
 }
 
 type Game struct {
@@ -135,6 +147,8 @@ type Game struct {
 }
 
 const maxSpeed = 10
+const maxBullet = 10
+const bulletTime = 120
 
 func (g *Game) Update() error {
 	g.counter++
@@ -167,12 +181,17 @@ func (g *Game) Update() error {
 
 	updatePlayer(player)
 
-	if bullet == nil {
-		bullet = &Bullet{player.image.x, player.image.y, toVector(maxSpeed*1.2, player.image.direction)}
+	if inpututil.IsKeyJustPressed(ebiten.KeySpace) {
+		if len(bullets) < maxBullet {
+			b := shootBullet(player)
+			bullets = append(bullets, &b)
+		}
 	}
-	updateBullet(bullet)
-	if bullet.x < -screenWidth/2 || bullet.x > screenWidth/2 || bullet.y < -screenHeight/2 || bullet.y > screenHeight/2 {
-		bullet = nil
+	for _, v := range bullets {
+		updateBullet(v)
+	}
+	if len(bullets) > 0 && bullets[0].time > bulletTime {
+		bullets = bullets[1:]
 	}
 
 	return nil
@@ -194,10 +213,11 @@ type PlayerImage struct {
 type Bullet struct {
 	x, y   float32
 	vector Vector
+	time   int
 }
 
 var player *Player
-var bullet *Bullet
+var bullets []*Bullet
 
 func toVector(speed float32, direction int) Vector {
 	var deg = float64(direction % 360)
@@ -220,8 +240,8 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		}
 		drawPlayer(screen, &player.image, 0)
 	}
-	if bullet != nil {
-		drawBullet(screen, bullet)
+	for _, v := range bullets {
+		drawBullet(screen, v)
 	}
 
 	ebitenutil.DebugPrint(screen, fmt.Sprintf("TPS: %0.2f\nFPS: %0.2f\nrotate: %d", ebiten.ActualTPS(), ebiten.ActualFPS(), player.image.direction))

@@ -5,11 +5,16 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
+	"github.com/hajimehoshi/ebiten/v2/text"
 	"github.com/hajimehoshi/ebiten/v2/vector"
+	"golang.org/x/image/font"
+	"golang.org/x/image/font/opentype"
 	"image"
 	"image/color"
 	"log"
 	"math"
+	"strings"
+	"yioz.io/asteroid-miner/resources/fonts"
 )
 
 var (
@@ -142,6 +147,11 @@ func updateBullet(bullet *Bullet) {
 	bullet.time += 1
 }
 
+func drawBulletCountUi(screen *ebiten.Image, usedBulletCount int) {
+	var str = strings.Repeat("■", maxBullet-usedBulletCount) + strings.Repeat("□", usedBulletCount)
+	text.Draw(screen, str, fontFace, centerX-(24*maxBullet/2), screenHeight-20, color.White)
+}
+
 type Game struct {
 	counter int
 }
@@ -244,6 +254,8 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		drawBullet(screen, v)
 	}
 
+	drawBulletCountUi(screen, len(bullets))
+
 	ebitenutil.DebugPrint(screen, fmt.Sprintf("TPS: %0.2f\nFPS: %0.2f\nrotate: %d", ebiten.ActualTPS(), ebiten.ActualFPS(), player.image.direction))
 }
 
@@ -251,8 +263,25 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
 	return screenWidth, screenHeight
 }
 
+var fontFace font.Face
+
 func main() {
 	g := &Game{counter: 0}
+
+	tt, err := opentype.Parse(fonts.PixelMplus12Regular_ttf)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	const dpi = 72
+	fontFace, err = opentype.NewFace(tt, &opentype.FaceOptions{
+		Size:    24,
+		DPI:     dpi,
+		Hinting: font.HintingFull,
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	ebiten.SetWindowSize(screenWidth, screenHeight)
 	ebiten.SetWindowTitle("Vector (Ebiten Demo)")

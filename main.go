@@ -27,13 +27,13 @@ func init() {
 const (
 	screenWidth  = 640
 	screenHeight = 480
+	centerX      = screenWidth / 2
+	centerY      = screenHeight / 2
 )
 
 func drawPlayer(screen *ebiten.Image, player *PlayerImage, number int) {
 	var path vector.Path
 
-	const centerX = screenWidth / 2
-	const centerY = screenHeight / 2
 	const width = 20
 	const height = 30
 
@@ -74,29 +74,29 @@ func drawPlayer(screen *ebiten.Image, player *PlayerImage, number int) {
 }
 
 func updatePlayer(player *Player) {
-	var v = toVector(player.speed, player.image.direction)
+	var v = toVector(player.acceleration, player.image.direction)
 	player.vector.x += v.x
 	player.vector.y += v.y
 
-	var totalSpeed = float32(math.Sqrt(math.Pow(float64(player.vector.x), 2) + math.Pow(float64(player.vector.y), 2)))
-	if totalSpeed > maxSpeed {
-		player.vector.x = player.vector.x * (maxSpeed / totalSpeed)
-		player.vector.y = player.vector.y * (maxSpeed / totalSpeed)
+	var speed = float32(math.Sqrt(math.Pow(float64(player.vector.x), 2) + math.Pow(float64(player.vector.y), 2)))
+	if speed > maxSpeed {
+		player.vector.x = player.vector.x * (maxSpeed / speed)
+		player.vector.y = player.vector.y * (maxSpeed / speed)
 	}
 
 	player.image.x += player.vector.x
 	player.image.y += player.vector.y
 
-	for player.image.x < -screenWidth/2 {
+	for player.image.x < -centerX {
 		player.image.x += screenWidth
 	}
-	for player.image.y < -screenHeight/2 {
+	for player.image.y < -centerY {
 		player.image.y += screenHeight
 	}
-	for player.image.x > screenWidth/2 {
+	for player.image.x > centerX {
 		player.image.x -= screenWidth
 	}
-	for player.image.y > screenHeight/2 {
+	for player.image.y > centerY {
 		player.image.y -= screenHeight
 	}
 }
@@ -104,8 +104,6 @@ func updatePlayer(player *Player) {
 func drawBullet(screen *ebiten.Image, bullet *Bullet) {
 	var path vector.Path
 
-	const centerX = screenWidth / 2
-	const centerY = screenHeight / 2
 	const size = 2
 
 	path.MoveTo(0, 0)
@@ -156,16 +154,15 @@ func (g *Game) Update() error {
 
 	if inpututil.KeyPressDuration(ebiten.KeyArrowLeft) > 0 {
 		player.image.direction = (player.image.direction + 2 + 360) % 360
-	}
-	if inpututil.KeyPressDuration(ebiten.KeyArrowRight) > 0 {
+	} else if inpututil.KeyPressDuration(ebiten.KeyArrowRight) > 0 {
 		player.image.direction = (player.image.direction - 2 + 360) % 360
 	}
 	if inpututil.KeyPressDuration(ebiten.KeyArrowUp) > 0 {
-		player.speed = +0.5
+		player.acceleration = +0.5
 	} else if inpututil.KeyPressDuration(ebiten.KeyArrowDown) > 0 {
-		player.speed = -0.5
+		player.acceleration = -0.5
 	} else {
-		player.speed = 0
+		player.acceleration = 0
 	}
 
 	updatePlayer(player)
@@ -185,10 +182,10 @@ type Vector struct {
 	x, y float32
 }
 type Player struct {
-	image      PlayerImage
-	speed      float32
-	vector     Vector
-	afterImage []PlayerImage
+	image        PlayerImage
+	acceleration float32
+	vector       Vector
+	afterImage   []PlayerImage
 }
 type PlayerImage struct {
 	x, y      float32

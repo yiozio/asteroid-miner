@@ -227,7 +227,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		drawBullet(screen, bullet)
 	}
 
-	ebitenutil.DebugPrint(screen, fmt.Sprintf("TPS: %0.2f\nFPS: %0.2f\nrotate: %d", ebiten.CurrentTPS(), ebiten.CurrentFPS(), player.image.direction))
+	ebitenutil.DebugPrint(screen, fmt.Sprintf("TPS: %0.2f\nFPS: %0.2f\nrotate: %d", ebiten.ActualTPS(), ebiten.ActualFPS(), player.image.direction))
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
@@ -243,4 +243,3 @@ func main() {
 		log.Fatal(err)
 	}
 }
-

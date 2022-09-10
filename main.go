@@ -132,8 +132,8 @@ func drawBullet(screen *ebiten.Image, bullet *Bullet) {
 }
 func shootBullet(player *Player) Bullet {
 	vec := toVector(maxSpeed*1.2, player.image.direction)
-	player.vector.x -= vec.x / 5
-	player.vector.y -= vec.y / 5
+	player.vector.x -= vec.x / 8
+	player.vector.y -= vec.y / 8
 	var speed = float32(math.Sqrt(math.Pow(float64(player.vector.x), 2) + math.Pow(float64(player.vector.y), 2)))
 	if speed > maxSpeed {
 		player.vector.x = player.vector.x * (maxSpeed / speed)
@@ -156,7 +156,7 @@ type Game struct {
 	counter int
 }
 
-const maxSpeed = 10
+const maxSpeed = 8
 const maxBullet = 10
 const bulletTime = 120
 
@@ -165,7 +165,7 @@ func (g *Game) Update() error {
 
 	if player == nil {
 		player = &Player{PlayerImage{0, 0, 90}, 0, Vector{0, 0}, []PlayerImage{}}
-	} else if g.counter%10 == 0 {
+	} else if g.counter%4 == 0 {
 		var length = len(player.afterImage)
 		if length <= 2 {
 			player.afterImage = append([]PlayerImage{player.image}, player.afterImage...)
@@ -177,9 +177,9 @@ func (g *Game) Update() error {
 	}
 
 	if inpututil.KeyPressDuration(ebiten.KeyArrowLeft) > 0 {
-		player.image.direction = (player.image.direction + 2 + 360) % 360
+		player.image.direction = (player.image.direction + 3 + 360) % 360
 	} else if inpututil.KeyPressDuration(ebiten.KeyArrowRight) > 0 {
-		player.image.direction = (player.image.direction - 2 + 360) % 360
+		player.image.direction = (player.image.direction - 3 + 360) % 360
 	}
 	if inpututil.KeyPressDuration(ebiten.KeyArrowUp) > 0 {
 		player.acceleration = +0.5

@@ -102,6 +102,9 @@ func updatePlayer(player *Player) {
 	if speed > maxSpeed {
 		player.vector.x = player.vector.x * (maxSpeed / speed)
 		player.vector.y = player.vector.y * (maxSpeed / speed)
+	} else if speed > 0 {
+		player.vector.x = player.vector.x * (float32(math.Max(float64(speed-0.1), 0)) / speed)
+		player.vector.y = player.vector.y * (float32(math.Max(float64(speed-0.1), 0)) / speed)
 	}
 
 	player.image.x += player.vector.x

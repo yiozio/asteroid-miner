@@ -45,13 +45,16 @@ func degToSinCos(deg int) (float32, float32) {
 	return sin, cos
 }
 
-func toVector(speed float32, direction int) Vector {
+func toPoint(speed float32, direction int) Point {
 	var sin, cos = degToSinCos(direction)
 
 	var vx = speed * cos
 	var vy = speed * -sin
 
-	return Vector{vx, vy}
+	return Point{vx, vy}
+}
+func rotate(x, y, sin, cos float32) (float32, float32) {
+	return cos*x + sin*y, -sin*x + cos*y
 }
 
 func drawPlayer(screen *ebiten.Image, player *ObjectImage, number int) {
@@ -79,10 +82,7 @@ func drawPlayer(screen *ebiten.Image, player *ObjectImage, number int) {
 
 	var vs, is = path.AppendVerticesAndIndicesForFilling(nil, nil)
 	for i := range vs {
-		var _x = vs[i].DstX
-		var _y = vs[i].DstY
-		vs[i].DstX = cos*_x + sin*_y
-		vs[i].DstY = -sin*_x + cos*_y
+		vs[i].DstX, vs[i].DstY = rotate(vs[i].DstX, vs[i].DstY, sin, cos)
 		vs[i].DstX += centerX + player.x
 		vs[i].DstY += centerY + player.y
 		var tone = (0xdd - float32(number*0x22)) / 0xff
@@ -90,11 +90,17 @@ func drawPlayer(screen *ebiten.Image, player *ObjectImage, number int) {
 		vs[i].ColorG = tone
 		vs[i].ColorB = tone
 	}
+	player.drawnPoints[0].x = vs[0].DstX
+	player.drawnPoints[0].y = vs[0].DstY
+	player.drawnPoints[1].x = vs[1].DstX
+	player.drawnPoints[1].y = vs[1].DstY
+	player.drawnPoints[2].x = vs[2].DstX
+	player.drawnPoints[2].y = vs[2].DstY
 	screen.DrawTriangles(vs, is, emptySubImage, op)
 }
 
 func updatePlayer(player *Player) {
-	var v = toVector(player.acceleration, player.image.direction)
+	var v = toPoint(player.acceleration, player.image.direction)
 	player.vector.x += v.x
 	player.vector.y += v.y
 
@@ -124,6 +130,8 @@ func updatePlayer(player *Player) {
 	}
 }
 
+var bulletId = 0
+
 func drawBullet(screen *ebiten.Image, bullet *Bullet) {
 	var path vector.Path
 
@@ -149,7 +157,7 @@ func drawBullet(screen *ebiten.Image, bullet *Bullet) {
 	screen.DrawTriangles(vs, is, emptySubImage, op)
 }
 func shootBullet(player *Player) Bullet {
-	vec := toVector(maxSpeed*1.2, player.image.direction)
+	vec := toPoint(maxSpeed*1.2, player.image.direction)
 	player.vector.x -= vec.x / 8
 	player.vector.y -= vec.y / 8
 	var speed = float32(math.Sqrt(math.Pow(float64(player.vector.x), 2) + math.Pow(float64(player.vector.y), 2)))
@@ -157,7 +165,8 @@ func shootBullet(player *Player) Bullet {
 		player.vector.x = player.vector.x * (maxSpeed / speed)
 		player.vector.y = player.vector.y * (maxSpeed / speed)
 	}
-	return Bullet{player.image.x, player.image.y, vec, 0}
+	bulletId++
+	return Bullet{bulletId, player.image.x, player.image.y, vec, 0}
 }
 func updateBullet(bullet *Bullet) {
 	bullet.x += bullet.vector.x
@@ -183,10 +192,7 @@ func drawAsteroid(screen *ebiten.Image, image *ObjectImage) {
 
 	var vs, is = path.AppendVerticesAndIndicesForFilling(nil, nil)
 	for i := range vs {
-		var _x = vs[i].DstX
-		var _y = vs[i].DstY
-		vs[i].DstX = cos*_x + sin*_y
-		vs[i].DstY = -sin*_x + cos*_y
+		vs[i].DstX, vs[i].DstY = rotate(vs[i].DstX, vs[i].DstY, sin, cos)
 		vs[i].DstX += centerX + image.x
 		vs[i].DstY += centerY + image.y
 
@@ -194,6 +200,9 @@ func drawAsteroid(screen *ebiten.Image, image *ObjectImage) {
 		vs[i].ColorR = tone
 		vs[i].ColorG = tone
 		vs[i].ColorB = tone
+
+		image.drawnPoints[i].x = vs[i].DstX
+		image.drawnPoints[i].y = vs[i].DstY
 	}
 	screen.DrawTriangles(vs, is, emptySubImage, op)
 }
@@ -213,6 +222,73 @@ func updateAsteroid(asteroid *Asteroid) {
 	for asteroid.image.y > centerY {
 		asteroid.image.y -= screenHeight
 	}
+
+	detectCollisionByBullet(asteroid.image)
+}
+func detectCollisionByBullet(image ObjectImage) bool {
+	var highestIndex = 0
+	for i, v := range image.drawnPoints {
+		if image.drawnPoints[highestIndex].y > v.y {
+			highestIndex = i
+		}
+	}
+
+	var topPoint = image.drawnPoints[highestIndex]
+	var leftPoint = image.drawnPoints[(highestIndex+1)%4]
+	var bottomPoint = image.drawnPoints[(highestIndex+2)%4]
+	var rightPoint = image.drawnPoints[(highestIndex+3)%4]
+
+	for _, v := range bullets {
+		var x = v.x + centerX
+		var y = v.y + centerY
+		if v.time >= 1000 {
+			continue
+		}
+		if y < topPoint.y || y > bottomPoint.y {
+			continue
+		}
+		if x < leftPoint.x || x > rightPoint.x {
+			continue
+		}
+		if topPoint.y == leftPoint.y || topPoint.y == rightPoint.y {
+			v.time = 1000
+			return true
+		}
+
+		var leftOfTop = x <= topPoint.x
+		var leftOfBottom = x <= bottomPoint.x
+		var topOfLeft = y <= leftPoint.y
+		var topOfRight = y <= rightPoint.y
+
+		var bottomOfTop = false
+		if leftOfTop && topOfLeft {
+			var xRate = 1 - (x-leftPoint.x)/(topPoint.x-leftPoint.x)
+			if (y - topPoint.y) > (leftPoint.y-topPoint.y)*xRate {
+				bottomOfTop = true
+			}
+		} else if !leftOfTop && topOfRight {
+			var xRate = (x - topPoint.x) / (rightPoint.x - topPoint.x)
+			if (y - topPoint.y) > (rightPoint.y-topPoint.y)*xRate {
+				bottomOfTop = true
+			}
+		}
+		if bottomOfTop {
+			if leftOfBottom {
+				var xRate = (x - leftPoint.x) / (bottomPoint.x - leftPoint.x)
+				if (y - leftPoint.y) < (bottomPoint.y-leftPoint.y)*xRate {
+					v.time = 1000
+					return true
+				}
+			} else {
+				var xRate = 1 - (x-bottomPoint.x)/(rightPoint.x-bottomPoint.x)
+				if (y - rightPoint.y) < (bottomPoint.y-rightPoint.y)*xRate {
+					v.time = 1000
+					return true
+				}
+			}
+		}
+	}
+	return false
 }
 
 func drawBulletCountUi(screen *ebiten.Image, usedBulletCount int) {
@@ -240,7 +316,7 @@ func (g *Game) Update() error {
 
 	if (maxAsteroidSizeSum-asteroidSizeSum) > 4 && g.counter%100 == 0 {
 		var x, y float32 = 0, 0
-		var vec = toVector(float32(rand.Int()%(asteroidSpeed-1)+1), rand.Int())
+		var vec = toPoint(float32(rand.Int()%(asteroidSpeed-1)+1), rand.Int())
 
 		const defaultSize = 4
 		var minSize = defaultSize*5 + 1
@@ -253,13 +329,13 @@ func (g *Game) Update() error {
 			x = float32((rand.Int()&1)*screenWidth - centerX)
 			y = float32(rand.Int()%screenHeight - centerY)
 		}
-		var img = ObjectImage{x, y, width, height, rand.Int() % 360}
+		var img = ObjectImage{x, y, width, height, rand.Int() % 360, []Point{{0, 0}, {0, 0}, {0, 0}, {0, 0}}} // rand.Int() % 360}
 		var asteroid = Asteroid{img, defaultSize, vec, None}
 		asteroids = append(asteroids, &asteroid)
 	}
 
 	if player == nil {
-		player = &Player{ObjectImage{0, 0, 20, 30, 90}, 0, Vector{0, 0}, []ObjectImage{}}
+		player = &Player{ObjectImage{0, 0, 20, 30, 90, []Point{{0, 0}, {0, 0}, {0, 0}}}, 0, Point{0, 0}, []ObjectImage{}}
 	} else if g.counter%4 == 0 {
 		var length = len(player.afterImage)
 		if length <= 2 {
@@ -306,28 +382,30 @@ func (g *Game) Update() error {
 	return nil
 }
 
-type Vector struct {
+type Point struct {
 	x, y float32
 }
 type Player struct {
 	image        ObjectImage
 	acceleration float32
-	vector       Vector
+	vector       Point
 	afterImage   []ObjectImage
 }
 type ObjectImage struct {
 	x, y, width, height float32
 	direction           int
+	drawnPoints         []Point
 }
 type Bullet struct {
+	id     int
 	x, y   float32
-	vector Vector
+	vector Point
 	time   int
 }
 type Asteroid struct {
 	image  ObjectImage
 	size   int
-	vector Vector
+	vector Point
 	aType  AsteroidType
 }
 
@@ -387,7 +465,7 @@ func main() {
 	}
 
 	ebiten.SetWindowSize(screenWidth, screenHeight)
-	ebiten.SetWindowTitle("Vector (Ebiten Demo)")
+	ebiten.SetWindowTitle("Asteroid Miner")
 	if err := ebiten.RunGame(g); err != nil {
 		log.Fatal(err)
 	}

@@ -375,8 +375,11 @@ func (g *Game) Update() error {
 	for _, v := range bullets {
 		updateBullet(v)
 	}
-	if len(bullets) > 0 && bullets[0].time > bulletTime {
-		bullets = bullets[1:]
+
+	for i, v := range bullets {
+		if v.time > bulletTime {
+			bullets = append(bullets[0:i], bullets[i+1:]...)
+		}
 	}
 
 	return nil
@@ -430,7 +433,9 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		drawPlayer(screen, &player.image, 0)
 	}
 	for _, v := range bullets {
-		drawBullet(screen, v)
+		if v.time < bulletTime {
+			drawBullet(screen, v)
+		}
 	}
 	for _, v := range asteroids {
 		drawAsteroid(screen, &v.image)

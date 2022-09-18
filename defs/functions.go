@@ -59,31 +59,37 @@ func DetectCollisionByPoint(image ObjectImage, pointMap map[int]Point) []int {
 		var topOfLeft = y <= leftPoint.Y
 		var topOfRight = y <= rightPoint.Y
 
-		var bottomOfTop = false
-		if leftOfTop && topOfLeft {
+		if (leftOfTop && topOfRight && !leftOfBottom && !topOfLeft) || (!leftOfTop && !topOfRight && leftOfBottom && topOfLeft) {
+			// 4斜辺で作られる直角三角形の内側であるためHITとする
+			hitBulletId = append(hitBulletId, bulletId)
+			continue
+		} else if leftOfTop && topOfLeft {
+			// 左上の線より右下であることを確認
 			var xRate = 1 - (x-leftPoint.X)/(topPoint.X-leftPoint.X)
 			if (y - topPoint.Y) > (leftPoint.Y-topPoint.Y)*xRate {
-				bottomOfTop = true
+				hitBulletId = append(hitBulletId, bulletId)
+				continue
 			}
 		} else if !leftOfTop && topOfRight {
+			// 右上の線より左下であることを確認
 			var xRate = (x - topPoint.X) / (rightPoint.X - topPoint.X)
 			if (y - topPoint.Y) > (rightPoint.Y-topPoint.Y)*xRate {
-				bottomOfTop = true
+				hitBulletId = append(hitBulletId, bulletId)
+				continue
 			}
-		}
-		if bottomOfTop {
-			if leftOfBottom {
-				var xRate = (x - leftPoint.X) / (bottomPoint.X - leftPoint.X)
-				if (y - leftPoint.Y) < (bottomPoint.Y-leftPoint.Y)*xRate {
-					hitBulletId = append(hitBulletId, bulletId)
-					continue
-				}
-			} else {
-				var xRate = 1 - (x-bottomPoint.X)/(rightPoint.X-bottomPoint.X)
-				if (y - rightPoint.Y) < (bottomPoint.Y-rightPoint.Y)*xRate {
-					hitBulletId = append(hitBulletId, bulletId)
-					continue
-				}
+		} else if leftOfBottom && !topOfLeft {
+			// 左下の線より右上であることを確認
+			var xRate = (x - leftPoint.X) / (bottomPoint.X - leftPoint.X)
+			if (y - leftPoint.Y) < (bottomPoint.Y-leftPoint.Y)*xRate {
+				hitBulletId = append(hitBulletId, bulletId)
+				continue
+			}
+		} else if !leftOfBottom && !topOfRight {
+			// 右下の線より左上であることを確認
+			var xRate = 1 - (x-bottomPoint.X)/(rightPoint.X-bottomPoint.X)
+			if (y - rightPoint.Y) < (bottomPoint.Y-rightPoint.Y)*xRate {
+				hitBulletId = append(hitBulletId, bulletId)
+				continue
 			}
 		}
 	}

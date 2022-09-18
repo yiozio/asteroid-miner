@@ -7,7 +7,9 @@ import (
 	"yioz.io/asteroid-miner/defs"
 )
 
-var Instances []*Asteroid
+var asteroidId = 0
+
+var InstanceMap = map[int]Asteroid{}
 
 func Add() {
 	var x, y float32 = 0, 0
@@ -25,8 +27,8 @@ func Add() {
 		y = float32(rand.Int()%defs.ScreenHeight - defs.CenterY)
 	}
 	var img = defs.ObjectImage{Position: defs.Point{X: x, Y: y}, RectSize: defs.Point{X: width, Y: height}, Direction: rand.Int() % 360, DrawnPoints: []defs.Point{{0, 0}, {0, 0}, {0, 0}, {0, 0}}}
-	var a = Asteroid{ObjectImage: img, Size: defaultSize, Vector: vec, MaterialType: None}
-	Instances = append(Instances, &a)
+	asteroidId += 1
+	InstanceMap[asteroidId] = Asteroid{ObjectImage: img, Size: defaultSize, Vector: vec, MaterialType: None}
 }
 
 func (asteroid *Asteroid) Draw(screen *ebiten.Image) {

@@ -25,7 +25,9 @@ func Rotate(x, y, sin, cos float32) (float32, float32) {
 	return cos*x + sin*y, -sin*x + cos*y
 }
 
-func DetectCollisionByBullet(image ObjectImage, bullets []*BulletImage) bool {
+func DetectCollisionByBullet(image ObjectImage, bulletMap map[int]Point) []int {
+	var hitBulletId []int
+
 	var highestIndex = 0
 	for i, v := range image.DrawnPoints {
 		if image.DrawnPoints[highestIndex].Y > v.Y {
@@ -38,12 +40,9 @@ func DetectCollisionByBullet(image ObjectImage, bullets []*BulletImage) bool {
 	var bottomPoint = image.DrawnPoints[(highestIndex+2)%4]
 	var rightPoint = image.DrawnPoints[(highestIndex+3)%4]
 
-	for _, v := range bullets {
-		var x = v.Position.X + CenterX
-		var y = v.Position.Y + CenterY
-		if v.Deleted {
-			continue
-		}
+	for bulletId, v := range bulletMap {
+		var x = v.X + CenterX
+		var y = v.Y + CenterY
 		if y < topPoint.Y || y > bottomPoint.Y {
 			continue
 		}
@@ -51,8 +50,8 @@ func DetectCollisionByBullet(image ObjectImage, bullets []*BulletImage) bool {
 			continue
 		}
 		if topPoint.Y == leftPoint.Y || topPoint.Y == rightPoint.Y {
-			v.Deleted = true
-			return true
+			hitBulletId = append(hitBulletId, bulletId)
+			continue
 		}
 
 		var leftOfTop = x <= topPoint.X
@@ -76,17 +75,17 @@ func DetectCollisionByBullet(image ObjectImage, bullets []*BulletImage) bool {
 			if leftOfBottom {
 				var xRate = (x - leftPoint.X) / (bottomPoint.X - leftPoint.X)
 				if (y - leftPoint.Y) < (bottomPoint.Y-leftPoint.Y)*xRate {
-					v.Deleted = true
-					return true
+					hitBulletId = append(hitBulletId, bulletId)
+					continue
 				}
 			} else {
 				var xRate = 1 - (x-bottomPoint.X)/(rightPoint.X-bottomPoint.X)
 				if (y - rightPoint.Y) < (bottomPoint.Y-rightPoint.Y)*xRate {
-					v.Deleted = true
-					return true
+					hitBulletId = append(hitBulletId, bulletId)
+					continue
 				}
 			}
 		}
 	}
-	return false
+	return hitBulletId
 }

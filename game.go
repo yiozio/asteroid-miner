@@ -27,7 +27,7 @@ func (g *Game) Update() error {
 	g.counter++
 
 	var asteroidSizeSum = 0
-	for _, v := range asteroid.Instances {
+	for _, v := range asteroid.InstanceMap {
 		asteroidSizeSum += v.Size
 	}
 
@@ -64,26 +64,34 @@ func (g *Game) Update() error {
 	player.Instance.Update()
 
 	if inpututil.IsKeyJustPressed(ebiten.KeySpace) {
-		if len(bullet.Instances) < bullet.MaxBullet {
+		if len(bullet.InstanceMap) < bullet.MaxBullet {
 			bullet.Add(player.Instance)
 		}
 	}
 
-	for _, v := range asteroid.Instances {
+	for aid, v := range asteroid.InstanceMap {
 		v.Update()
-		var _bullets []*defs.BulletImage
-		for _, v := range bullet.Instances {
-			_bullets = append(_bullets, &v.BulletImage)
+		asteroid.InstanceMap[aid] = v
+		var bulletMap = map[int]defs.Point{}
+		for bId, v := range bullet.InstanceMap {
+			bulletMap[bId] = v.Position
 		}
-		defs.DetectCollisionByBullet(v.ObjectImage, _bullets)
-	}
-	for _, v := range bullet.Instances {
-		v.Update()
+		for i, bId := range defs.DetectCollisionByBullet(v.ObjectImage, bulletMap) {
+			if i == 0 {
+				delete(asteroid.InstanceMap, aid)
+			}
+			delete(bullet.InstanceMap, bId)
+		}
 	}
 
-	for i, v := range bullet.Instances {
-		if v.Deleted || v.Time > bullet.TimeToLive {
-			bullet.Instances = append(bullet.Instances[0:i], bullet.Instances[i+1:]...)
+	for bId, v := range bullet.InstanceMap {
+		v.Update()
+		bullet.InstanceMap[bId] = v
+	}
+
+	for bId, v := range bullet.InstanceMap {
+		if v.Time > bullet.TimeToLive {
+			delete(bullet.InstanceMap, bId)
 		}
 	}
 
@@ -95,15 +103,13 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	if player.Instance != nil {
 		player.Instance.Draw(screen)
 	}
-	for _, v := range bullet.Instances {
-		if v.Deleted || v.Time < bullet.TimeToLive {
-			v.Draw(screen)
-		}
-	}
-	for _, v := range asteroid.Instances {
+	for _, v := range bullet.InstanceMap {
 		v.Draw(screen)
 	}
-	drawBulletCountUi(screen, len(bullet.Instances))
+	for _, v := range asteroid.InstanceMap {
+		v.Draw(screen)
+	}
+	drawBulletCountUi(screen, len(bullet.InstanceMap))
 
 	ebitenutil.DebugPrint(screen, fmt.Sprintf("TPS: %0.2f\nFPS: %0.2f\nrotate: %d", ebiten.ActualTPS(), ebiten.ActualFPS(), player.Instance.Direction))
 }

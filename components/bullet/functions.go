@@ -10,7 +10,7 @@ import (
 
 var bulletId = 0
 
-var Instances []*Bullet
+var InstanceMap = map[int]Bullet{}
 
 func Add(_player *player.Player) {
 	vec := defs.ToPoint(player.MaxSpeed*1.2, _player.Direction)
@@ -22,8 +22,7 @@ func Add(_player *player.Player) {
 		_player.Vector.Y = _player.Vector.Y * (player.MaxSpeed / speed)
 	}
 	bulletId++
-	var b = Bullet{defs.BulletImage{Position: _player.Position}, bulletId, vec, 0}
-	Instances = append(Instances, &b)
+	InstanceMap[bulletId] = Bullet{Position: _player.Position, Id: bulletId, Vector: vec}
 }
 func (bullet *Bullet) Draw(screen *ebiten.Image) {
 	var path vector.Path

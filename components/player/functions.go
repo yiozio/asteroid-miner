@@ -100,3 +100,14 @@ func (player *Player) Update() {
 		player.Position.Y -= defs.ScreenHeight
 	}
 }
+
+func (player *Player) UpdateAfterImage() {
+	var length = len(player.AfterImage)
+	if length <= 2 {
+		player.AfterImage = append([]defs.ObjectImage{player.ObjectImage}, player.AfterImage...)
+	} else {
+		player.AfterImage[2] = player.AfterImage[1]
+		player.AfterImage[1] = player.AfterImage[0]
+		player.AfterImage[0] = player.ObjectImage
+	}
+}

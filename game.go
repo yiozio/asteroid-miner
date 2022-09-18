@@ -38,14 +38,7 @@ func (g *Game) Update() error {
 	if player.Instance == nil {
 		player.New()
 	} else if g.counter%4 == 0 {
-		var length = len(player.Instance.AfterImage)
-		if length <= 2 {
-			player.Instance.AfterImage = append([]defs.ObjectImage{player.Instance.ObjectImage}, player.Instance.AfterImage...)
-		} else {
-			player.Instance.AfterImage[2] = player.Instance.AfterImage[1]
-			player.Instance.AfterImage[1] = player.Instance.AfterImage[0]
-			player.Instance.AfterImage[0] = player.Instance.ObjectImage
-		}
+		player.Instance.UpdateAfterImage()
 	}
 
 	if inpututil.KeyPressDuration(ebiten.KeyArrowLeft) > 0 {

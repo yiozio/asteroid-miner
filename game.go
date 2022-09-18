@@ -95,12 +95,11 @@ func (g *Game) Update() error {
 
 	for bId, v := range bullet.InstanceMap {
 		v.Update()
-		bullet.InstanceMap[bId] = v
-	}
 
-	for bId, v := range bullet.InstanceMap {
 		if v.Time > bullet.TimeToLive {
-			delete(bullet.InstanceMap, bId)
+			delete(bullet.InstanceMap, v.Id)
+		} else {
+			bullet.InstanceMap[bId] = v
 		}
 	}
 

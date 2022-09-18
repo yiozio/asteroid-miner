@@ -25,7 +25,7 @@ func Rotate(x, y, sin, cos float32) (float32, float32) {
 	return cos*x + sin*y, -sin*x + cos*y
 }
 
-func DetectCollisionByBullet(image ObjectImage, bulletMap map[int]Point) []int {
+func DetectCollisionByPoint(image ObjectImage, pointMap map[int]Point) []int {
 	var hitBulletId []int
 
 	var highestIndex = 0
@@ -40,7 +40,7 @@ func DetectCollisionByBullet(image ObjectImage, bulletMap map[int]Point) []int {
 	var bottomPoint = image.DrawnPoints[(highestIndex+2)%4]
 	var rightPoint = image.DrawnPoints[(highestIndex+3)%4]
 
-	for bulletId, v := range bulletMap {
+	for bulletId, v := range pointMap {
 		var x = v.X + CenterX
 		var y = v.Y + CenterY
 		if y < topPoint.Y || y > bottomPoint.Y {

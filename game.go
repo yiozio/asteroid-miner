@@ -36,7 +36,7 @@ func (g *Game) Update() error {
 	}
 
 	if player.Instance == nil {
-		player.Instance = &player.Player{ObjectImage: defs.ObjectImage{RectSize: defs.Point{X: 20, Y: 30}, Direction: 90, DrawnPoints: []defs.Point{{0, 0}, {0, 0}, {0, 0}}}, Vector: defs.Point{}, AfterImage: []defs.ObjectImage{}}
+		player.New()
 	} else if g.counter%4 == 0 {
 		var length = len(player.Instance.AfterImage)
 		if length <= 2 {
@@ -72,15 +72,24 @@ func (g *Game) Update() error {
 	for aid, v := range asteroid.InstanceMap {
 		v.Update()
 		asteroid.InstanceMap[aid] = v
-		var bulletMap = map[int]defs.Point{}
+		var pointMap = map[int]defs.Point{}
 		for bId, v := range bullet.InstanceMap {
-			bulletMap[bId] = v.Position
+			pointMap[bId] = v.Position
 		}
-		for i, bId := range defs.DetectCollisionByBullet(v.ObjectImage, bulletMap) {
+
+		for i, v := range player.Instance.DrawnPoints {
+			pointMap[-(i + 1)] = defs.Point{X: v.X - defs.CenterX, Y: v.Y - defs.CenterY}
+		}
+
+		for i, pointId := range defs.DetectCollisionByPoint(v.ObjectImage, pointMap) {
+			if pointId < 0 {
+				player.New()
+				continue
+			}
 			if i == 0 {
 				delete(asteroid.InstanceMap, aid)
 			}
-			delete(bullet.InstanceMap, bId)
+			delete(bullet.InstanceMap, pointId)
 		}
 	}
 

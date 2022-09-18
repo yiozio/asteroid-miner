@@ -9,6 +9,10 @@ import (
 
 var Instance *Player
 
+func New() {
+	Instance = &Player{ObjectImage: defs.ObjectImage{RectSize: defs.Point{X: 20, Y: 30}, Direction: 90, DrawnPoints: []defs.Point{{0, 0}, {0, 0}, {0, 0}}}, Vector: defs.Point{}, AfterImage: []defs.ObjectImage{}}
+}
+
 func (player *Player) draw(screen *ebiten.Image, afterImageNumber int) {
 	var image defs.ObjectImage
 	if afterImageNumber == 0 {

@@ -29,14 +29,12 @@ func (player *Player) draw(screen *ebiten.Image, afterImageNumber int) {
 	path.MoveTo(height/2, 0)
 	path.LineTo(-height/2, +width/2)
 	path.LineTo(-height/2, -width/2)
-	path.LineTo(height/2, 0)
 
 	var x2 = height * 0.8
 	var y2 = width * 0.8
-	path.LineTo(x2/2-1.5, 0)
+	path.MoveTo(x2/2-1.5, 0)
 	path.LineTo(-x2/2-1.5, +y2/2)
 	path.LineTo(-x2/2-1.5, -y2/2)
-	path.LineTo(x2/2-1.5, 0)
 
 	op := &ebiten.DrawTrianglesOptions{
 		FillRule: ebiten.EvenOdd,
@@ -48,17 +46,17 @@ func (player *Player) draw(screen *ebiten.Image, afterImageNumber int) {
 		vs[i].DstX, vs[i].DstY = defs.Rotate(vs[i].DstX, vs[i].DstY, sin, cos)
 		vs[i].DstX += defs.CenterX + image.Position.X
 		vs[i].DstY += defs.CenterY + image.Position.Y
+
 		var tone = (0xdd - float32(afterImageNumber*0x22)) / 0xff
 		vs[i].ColorR = tone
 		vs[i].ColorG = tone
 		vs[i].ColorB = tone
+
+		if i < 3 {
+			image.DrawnPoints[i].X = vs[i].DstX
+			image.DrawnPoints[i].Y = vs[i].DstY
+		}
 	}
-	image.DrawnPoints[0].X = vs[0].DstX
-	image.DrawnPoints[0].Y = vs[0].DstY
-	image.DrawnPoints[1].X = vs[1].DstX
-	image.DrawnPoints[1].Y = vs[1].DstY
-	image.DrawnPoints[2].X = vs[2].DstX
-	image.DrawnPoints[2].Y = vs[2].DstY
 	screen.DrawTriangles(vs, is, defs.EmptySubImage, op)
 }
 

@@ -28,19 +28,31 @@ func Add() {
 	}
 	var img = defs.ObjectImage{Position: defs.Point{X: x, Y: y}, RectSize: defs.Point{X: width, Y: height}, Direction: rand.Int() % 360, DrawnPoints: []defs.Point{{0, 0}, {0, 0}, {0, 0}, {0, 0}}}
 	asteroidId += 1
-	InstanceMap[asteroidId] = Asteroid{ObjectImage: img, Size: defaultSize, Vector: vec, MaterialType: None}
+
+	var drawPoints = []defs.Point{
+		{X: -width, Y: -height},
+		{X: float32(rand.Int()%int(width) - int(width)/2), Y: -height - float32(rand.Int()%20-10)},
+		{X: +width, Y: -height},
+		{X: +width + float32(rand.Int()%20-10), Y: float32(rand.Int()%int(height) - int(height)/2)},
+		{X: +width, Y: +height},
+		{X: float32(rand.Int()%int(width) - int(width)/2), Y: +height + float32(rand.Int()%20-10)},
+		{X: -width, Y: +height},
+		{X: -width - float32(rand.Int()%20-10), Y: float32(rand.Int()%int(height) - int(height)/2)},
+	}
+
+	InstanceMap[asteroidId] = Asteroid{ObjectImage: img, Id: asteroidId, Size: defaultSize, DrawPoints: drawPoints, Vector: vec, MaterialType: None}
 }
 
 func (asteroid *Asteroid) Draw(screen *ebiten.Image) {
 	var path vector.Path
 
-	var width = asteroid.RectSize.X
-	var height = asteroid.RectSize.Y
-
-	path.MoveTo(-height, -width)
-	path.LineTo(-height, +width)
-	path.LineTo(+height, +width)
-	path.LineTo(+height, -width)
+	for i, v := range asteroid.DrawPoints {
+		if i == 0 {
+			path.MoveTo(v.Y, v.X)
+		} else {
+			path.LineTo(v.Y, v.X)
+		}
+	}
 
 	op := &ebiten.DrawTrianglesOptions{
 		FillRule: ebiten.EvenOdd,
@@ -48,6 +60,7 @@ func (asteroid *Asteroid) Draw(screen *ebiten.Image) {
 	var sin, cos = defs.DegToSinCos(asteroid.Direction)
 
 	var vs, is = path.AppendVerticesAndIndicesForFilling(nil, nil)
+
 	for i := range vs {
 		vs[i].DstX, vs[i].DstY = defs.Rotate(vs[i].DstX, vs[i].DstY, sin, cos)
 		vs[i].DstX += defs.CenterX + asteroid.Position.X
@@ -58,8 +71,10 @@ func (asteroid *Asteroid) Draw(screen *ebiten.Image) {
 		vs[i].ColorG = tone
 		vs[i].ColorB = tone
 
-		asteroid.DrawnPoints[i].X = vs[i].DstX
-		asteroid.DrawnPoints[i].Y = vs[i].DstY
+		if i%2 == 0 {
+			asteroid.DrawnPoints[i/2].X = vs[i].DstX
+			asteroid.DrawnPoints[i/2].Y = vs[i].DstY
+		}
 	}
 	screen.DrawTriangles(vs, is, defs.EmptySubImage, op)
 }

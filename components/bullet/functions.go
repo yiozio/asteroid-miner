@@ -11,6 +11,7 @@ import (
 var bulletId = 0
 
 var InstanceMap = map[int]Bullet{}
+var hitEffect = map[int]Bullet{}
 
 func Add(_player *player.Player) {
 	vec := defs.ToPoint(player.MaxSpeed*1.2, _player.Direction)
@@ -23,6 +24,42 @@ func Add(_player *player.Player) {
 	}
 	bulletId++
 	InstanceMap[bulletId] = Bullet{Position: _player.Position, Id: bulletId, Vector: vec}
+}
+func Hit(bulletId int) {
+	var bullet = InstanceMap[bulletId]
+	bullet.Time = 0
+	hitEffect[bulletId] = bullet
+	delete(InstanceMap, bulletId)
+}
+func DrawHitEffect(screen *ebiten.Image) {
+	for id, v := range hitEffect {
+		if v.Time > 6 {
+			delete(hitEffect, id)
+			continue
+		}
+		v.Time += 1
+		hitEffect[id] = v
+
+		var path vector.Path
+		var size = float32(math.Sqrt(float64(v.Time+1) * 100))
+		path.MoveTo(v.Position.X+defs.CenterX, v.Position.Y+defs.CenterY)
+		path.Arc(v.Position.X+defs.CenterX, v.Position.Y+defs.CenterY, size, 0, 360*math.Pi/180, vector.Clockwise)
+		path.MoveTo(v.Position.X+defs.CenterX, v.Position.Y+defs.CenterY)
+		path.Arc(v.Position.X+defs.CenterX, v.Position.Y+defs.CenterY, size-2, 0, 360*math.Pi/180, vector.Clockwise)
+
+		op := &ebiten.DrawTrianglesOptions{
+			FillRule: ebiten.EvenOdd,
+		}
+
+		var vs, is = path.AppendVerticesAndIndicesForFilling(nil, nil)
+		for i := range vs {
+			var tone = 0xaa / float32(0xff)
+			vs[i].ColorR = tone
+			vs[i].ColorG = tone
+			vs[i].ColorB = tone
+		}
+		screen.DrawTriangles(vs, is, defs.EmptySubImage, op)
+	}
 }
 func (bullet *Bullet) Draw(screen *ebiten.Image) {
 	var path vector.Path

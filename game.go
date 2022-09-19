@@ -82,7 +82,7 @@ func (g *Game) Update() error {
 			if i == 0 {
 				delete(asteroid.InstanceMap, aid)
 			}
-			delete(bullet.InstanceMap, pointId)
+			bullet.Hit(pointId)
 		}
 	}
 
@@ -90,7 +90,7 @@ func (g *Game) Update() error {
 		v.Update()
 
 		if v.Time > bullet.TimeToLive {
-			delete(bullet.InstanceMap, v.Id)
+			delete(bullet.InstanceMap, bId)
 		} else {
 			bullet.InstanceMap[bId] = v
 		}
@@ -110,6 +110,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	for _, v := range asteroid.InstanceMap {
 		v.Draw(screen)
 	}
+	bullet.DrawHitEffect(screen)
 	drawBulletCountUi(screen, len(bullet.InstanceMap))
 
 	ebitenutil.DebugPrint(screen, fmt.Sprintf("TPS: %0.2f\nFPS: %0.2f\nrotate: %d", ebiten.ActualTPS(), ebiten.ActualFPS(), player.Instance.Direction))

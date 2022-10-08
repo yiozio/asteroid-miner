@@ -16,7 +16,14 @@ import (
 
 func drawBulletCountUi(screen *ebiten.Image, usedBulletCount int) {
 	var str = strings.Repeat("■", bullet.MaxBullet-usedBulletCount) + strings.Repeat("□", usedBulletCount)
-	text.Draw(screen, str, fontFace, defs.CenterX-(24*bullet.MaxBullet/2), defs.ScreenHeight-20, color.White)
+	text.Draw(
+		screen,
+		str,
+		fontFace,
+		defs.CenterX-(24*bullet.MaxBullet/2),
+		defs.ScreenHeight-20,
+		color.White,
+	)
 }
 
 type Game struct {
@@ -113,7 +120,15 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	bullet.DrawHitEffect(screen)
 	drawBulletCountUi(screen, len(bullet.InstanceMap))
 
-	ebitenutil.DebugPrint(screen, fmt.Sprintf("TPS: %0.2f\nFPS: %0.2f\nrotate: %d", ebiten.ActualTPS(), ebiten.ActualFPS(), player.Instance.Direction))
+	ebitenutil.DebugPrint(
+		screen,
+		fmt.Sprintf(
+			"TPS: %0.2f\nFPS: %0.2f\nrotate: %d",
+			ebiten.ActualTPS(),
+			ebiten.ActualFPS(),
+			player.Instance.Direction,
+		),
+	)
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {

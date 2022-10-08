@@ -43,9 +43,23 @@ func DrawHitEffect(screen *ebiten.Image) {
 		var path vector.Path
 		var size = float32(math.Sqrt(float64(v.Time+1) * 100))
 		path.MoveTo(v.Position.X+defs.CenterX, v.Position.Y+defs.CenterY)
-		path.Arc(v.Position.X+defs.CenterX, v.Position.Y+defs.CenterY, size, 0, 360*math.Pi/180, vector.Clockwise)
+		path.Arc(
+			v.Position.X+defs.CenterX,
+			v.Position.Y+defs.CenterY,
+			size,
+			0,
+			360*math.Pi/180,
+			vector.Clockwise,
+		)
 		path.MoveTo(v.Position.X+defs.CenterX, v.Position.Y+defs.CenterY)
-		path.Arc(v.Position.X+defs.CenterX, v.Position.Y+defs.CenterY, size-2, 0, 360*math.Pi/180, vector.Clockwise)
+		path.Arc(
+			v.Position.X+defs.CenterX,
+			v.Position.Y+defs.CenterY,
+			size-2,
+			0,
+			360*math.Pi/180,
+			vector.Clockwise,
+		)
 
 		op := &ebiten.DrawTrianglesOptions{
 			FillRule: ebiten.EvenOdd,

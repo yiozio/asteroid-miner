@@ -31,16 +31,35 @@ func Add() {
 
 	var drawPoints = []defs.Point{
 		{X: -width, Y: -height},
-		{X: float32(rand.Int()%int(width) - int(width)/2), Y: -height - float32(rand.Int()%int(height)-int(height)/2)},
+		{
+			X: float32(rand.Int()%int(width) - int(width)/2),
+			Y: -height - float32(rand.Int()%int(height)-int(height)/2),
+		},
 		{X: +width, Y: -height},
-		{X: +width + float32(rand.Int()%int(width)-int(width)/2), Y: float32(rand.Int()%int(height) - int(height)/2)},
+		{
+			X: +width + float32(rand.Int()%int(width)-int(width)/2),
+			Y: float32(rand.Int()%int(height) - int(height)/2),
+		},
 		{X: +width, Y: +height},
-		{X: float32(rand.Int()%int(width) - int(width)/2), Y: +height + float32(rand.Int()%int(height)-int(height)/2)},
+		{
+			X: float32(rand.Int()%int(width) - int(width)/2),
+			Y: +height + float32(rand.Int()%int(height)-int(height)/2),
+		},
 		{X: -width, Y: +height},
-		{X: -width - float32(rand.Int()%int(width)-int(width)/2), Y: float32(rand.Int()%int(height) - int(height)/2)},
+		{
+			X: -width - float32(rand.Int()%int(width)-int(width)/2),
+			Y: float32(rand.Int()%int(height) - int(height)/2),
+		},
 	}
 
-	InstanceMap[asteroidId] = Asteroid{ObjectImage: img, Id: asteroidId, Size: defaultSize, DrawPoints: drawPoints, Vector: vec, MaterialType: None}
+	InstanceMap[asteroidId] = Asteroid{
+		ObjectImage:  img,
+		Id:           asteroidId,
+		Size:         defaultSize,
+		DrawPoints:   drawPoints,
+		Vector:       vec,
+		MaterialType: None,
+	}
 }
 
 func (asteroid *Asteroid) Draw(screen *ebiten.Image) {

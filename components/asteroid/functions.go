@@ -26,7 +26,18 @@ func Add() {
 		x = float32((rand.Int()&1)*defs.ScreenWidth - defs.CenterX)
 		y = float32(rand.Int()%defs.ScreenHeight - defs.CenterY)
 	}
-	var img = defs.ObjectImage{Position: defs.Point{X: x, Y: y}, RectSize: defs.Point{X: width, Y: height}, Direction: rand.Int() % 360, DrawnPoints: []defs.Point{{0, 0}, {0, 0}, {0, 0}, {0, 0}}}
+	var img = defs.ObjectImage{
+		Position: defs.Point{
+			X: x,
+			Y: y,
+		},
+		RectSize: defs.Point{
+			X: width,
+			Y: height,
+		},
+		Direction:   rand.Int() % 360,
+		DrawnPoints: []defs.Point{{0, 0}, {0, 0}, {0, 0}, {0, 0}},
+	}
 	asteroidId += 1
 
 	var drawPoints = []defs.Point{

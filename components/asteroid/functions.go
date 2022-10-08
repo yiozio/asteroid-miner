@@ -13,7 +13,7 @@ var InstanceMap = map[int]Asteroid{}
 
 func Add() {
 	var x, y float32 = 0, 0
-	var vec = defs.ToPoint(float32(rand.Int()%(AsteroidSpeed-1)+1), rand.Int())
+	var vec = defs.ToPoint(float32(rand.Int()%(Speed-1)+1), rand.Int())
 
 	const defaultSize = 4
 	var minSize = defaultSize*15 + 1
@@ -36,7 +36,7 @@ func Add() {
 			Y: height,
 		},
 		Direction:   rand.Int() % 360,
-		DrawnPoints: []defs.Point{{0, 0}, {0, 0}, {0, 0}, {0, 0}},
+		DrawnPoints: []defs.Point{{0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}},
 	}
 	asteroidId += 1
 
@@ -101,10 +101,8 @@ func (asteroid *Asteroid) Draw(screen *ebiten.Image) {
 		vs[i].ColorG = tone
 		vs[i].ColorB = tone
 
-		if i%2 == 0 {
-			asteroid.DrawnPoints[i/2].X = vs[i].DstX
-			asteroid.DrawnPoints[i/2].Y = vs[i].DstY
-		}
+		asteroid.DrawnPoints[i].X = vs[i].DstX
+		asteroid.DrawnPoints[i].Y = vs[i].DstY
 	}
 	screen.DrawTriangles(vs, is, defs.EmptySubImage, op)
 }

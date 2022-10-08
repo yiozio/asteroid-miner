@@ -16,9 +16,9 @@ func Add() {
 	var vec = defs.ToPoint(float32(rand.Int()%(AsteroidSpeed-1)+1), rand.Int())
 
 	const defaultSize = 4
-	var minSize = defaultSize*5 + 1
-	var width = float32(rand.Int()%5 + minSize)
-	var height = float32(rand.Int()%5 + minSize)
+	var minSize = defaultSize*15 + 1
+	var width = float32(rand.Int()%minSize + minSize)
+	var height = float32(rand.Int()%minSize + minSize)
 	if rand.Int()&1 == 1 {
 		x = float32(rand.Int()%defs.ScreenWidth - defs.CenterX)
 		y = float32((rand.Int()&1)*defs.ScreenHeight - defs.CenterY)
@@ -31,13 +31,13 @@ func Add() {
 
 	var drawPoints = []defs.Point{
 		{X: -width, Y: -height},
-		{X: float32(rand.Int()%int(width) - int(width)/2), Y: -height - float32(rand.Int()%20-10)},
+		{X: float32(rand.Int()%int(width) - int(width)/2), Y: -height - float32(rand.Int()%int(height)-int(height)/2)},
 		{X: +width, Y: -height},
-		{X: +width + float32(rand.Int()%20-10), Y: float32(rand.Int()%int(height) - int(height)/2)},
+		{X: +width + float32(rand.Int()%int(width)-int(width)/2), Y: float32(rand.Int()%int(height) - int(height)/2)},
 		{X: +width, Y: +height},
-		{X: float32(rand.Int()%int(width) - int(width)/2), Y: +height + float32(rand.Int()%20-10)},
+		{X: float32(rand.Int()%int(width) - int(width)/2), Y: +height + float32(rand.Int()%int(height)-int(height)/2)},
 		{X: -width, Y: +height},
-		{X: -width - float32(rand.Int()%20-10), Y: float32(rand.Int()%int(height) - int(height)/2)},
+		{X: -width - float32(rand.Int()%int(width)-int(width)/2), Y: float32(rand.Int()%int(height) - int(height)/2)},
 	}
 
 	InstanceMap[asteroidId] = Asteroid{ObjectImage: img, Id: asteroidId, Size: defaultSize, DrawPoints: drawPoints, Vector: vec, MaterialType: None}
